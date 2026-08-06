@@ -1,0 +1,16 @@
+--- a/patchattr.h
++++ b/patchattr.h
+@@ -15,2 +15,3 @@
+ #include <sys/attr.h>
++#include <uuid/uuid.h>
+ #include <sys/mount.h>
+@@ -70,7 +70,7 @@
+     PATCHATTR(ATTR_CMN_USERACCESS, sizeof (u_int32_t), 0),
+     PATCHATTR(ATTR_CMN_EXTENDED_SECURITY, sizeof (attrreference_t), 1),
+-    PATCHATTR(ATTR_CMN_UUID, sizeof (guid_t), 0),
+-    PATCHATTR(ATTR_CMN_GRPUUID, sizeof (guid_t), 0),
++    PATCHATTR(ATTR_CMN_UUID, sizeof (uuid_t), 0),
++    PATCHATTR(ATTR_CMN_GRPUUID, sizeof (uuid_t), 0),
+     PATCHATTR(ATTR_CMN_FILEID, sizeof (u_int64_t), 0),
+     PATCHATTR(ATTR_CMN_PARENTID, sizeof (u_int64_t), 0),
+     PATCHATTR(ATTR_CMN_FULLPATH, sizeof (attrreference_t), 1),
