@@ -409,8 +409,11 @@ main() {
     fi
 
     # Read in all the file in memory, exclude empty lines and comments
-    # mapfile reads all lines, even the last one if it is missing a \n
-    mapfile -t ENTRIES < <( sed -r -e 's/#.*//; /^[[:space:]]*$/d;' "${USERS_TABLE}" )
+    # Read each line without Bash 4's mapfile builtin.
+    ENTRIES=()
+    while IFS= read -r line; do
+        ENTRIES+=("${line}")
+    done < <( sed -r -e 's/#.*//; /^[[:space:]]*$/d;' "${USERS_TABLE}" )
 
     # We first create groups whose gid is positive, and then we create groups
     # whose gid is automatic, so that, if a group is defined both with
