@@ -30,6 +30,9 @@ static char ccache_path[PATH_MAX];
 #endif
 static char path[PATH_MAX];
 static char sysroot[PATH_MAX];
+/* glibc provides program_invocation_short_name; keep the wrapper portable
+ * for host C libraries such as macOS libc. */
+static const char *br_program_name;
 /* As would be defined by gcc:
  *   https://gcc.gnu.org/onlinedocs/cpp/Standard-Predefined-Macros.html
  * sizeof() on string literals includes the terminating \0. */
@@ -156,7 +159,7 @@ static void check_unsafe_path(const char *arg,
 			continue;
 		fprintf(stderr,
 			"%s: ERROR: unsafe header/library path used in cross-compilation: '%s%s%s'\n",
-			program_invocation_short_name,
+			br_program_name,
 			arg,
 			arg_has_path ? "" : "' '", /* close single-quote, space, open single-quote */
 			arg_has_path ? "" : path); /* so that arg and path are properly quoted. */
@@ -193,26 +196,26 @@ bool parse_source_date_epoch_from_env(void)
 	 */
 	if ((errno != 0) || !*epoch_env || *endptr || (epoch < 0)) {
 		fprintf(stderr, "%s: invalid SOURCE_DATE_EPOCH='%s'\n",
-			program_invocation_short_name,
+			br_program_name,
 			epoch_env);
 		exit(1);
 	}
 	tzset(); /* For localtime_r(), below. */
 	if (localtime_r(&epoch, &epoch_tm) == NULL) {
 		fprintf(stderr, "%s: cannot parse SOURCE_DATE_EPOCH=%s\n",
-				program_invocation_short_name,
+				br_program_name,
 				getenv("SOURCE_DATE_EPOCH"));
 		exit(1);
 	}
 	if (!strftime(_time_, sizeof(_time_), "-D__TIME__=\"%T\"", &epoch_tm)) {
 		fprintf(stderr, "%s: cannot set time from SOURCE_DATE_EPOCH=%s\n",
-				program_invocation_short_name,
+				br_program_name,
 				getenv("SOURCE_DATE_EPOCH"));
 		exit(1);
 	}
 	if (!strftime(_date_, sizeof(_date_), "-D__DATE__=\"%b %e %Y\"", &epoch_tm)) {
 		fprintf(stderr, "%s: cannot set date from SOURCE_DATE_EPOCH=%s\n",
-				program_invocation_short_name,
+				br_program_name,
 				getenv("SOURCE_DATE_EPOCH"));
 		exit(1);
 	}
@@ -284,6 +287,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
+	br_program_name = basename;
 	if (absbasedir == NULL) {
 		perror(__FILE__ ": realpath");
 		return 2;

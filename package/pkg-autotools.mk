@@ -234,7 +234,9 @@ ifeq ($$($(2)_AUTOPOINT),YES)
 $(2)_DEPENDENCIES += host-gettext
 $(2)_AUTORECONF_ENV += AUTOPOINT=$$(HOST_DIR)/bin/autopoint
 else
-$(2)_AUTORECONF_ENV += AUTOPOINT=/bin/true
+# Resolve true through PATH so this also works on macOS, where /bin/true is absent.
+# 透過 PATH 尋找 true，兼容沒有 /bin/true 的 macOS。
+$(2)_AUTORECONF_ENV += AUTOPOINT=true
 endif
 $(2)_PRE_CONFIGURE_HOOKS += AUTORECONF_HOOK
 # default values are not evaluated yet, so don't rely on this defaulting to YES

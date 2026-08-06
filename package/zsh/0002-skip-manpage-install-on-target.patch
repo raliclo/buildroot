@@ -1,0 +1,5 @@
+--- a/Doc/Makefile.in
++++ b/Doc/Makefile.in
+@@ -329,1 +329,1 @@
+-install: install.man install.runhelp
++install: install.runhelp
