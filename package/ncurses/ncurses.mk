@@ -160,6 +160,7 @@ HOST_NCURSES_CONF_OPTS = \
 	--without-cxx \
 	--without-cxx-binding \
 	--without-ada \
+	--without-debug \
 	--with-default-terminfo-dir=/usr/share/terminfo \
 	--disable-db-install \
 	--without-normal

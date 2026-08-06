@@ -18,6 +18,13 @@ ZSH_CPE_ID_VENDOR = zsh
 # 0004-51877-do-not-build-pcre-module-if-pcre2-config-is-no.patch
 ZSH_AUTORECONF = YES
 
+define ZSH_SKIP_MANPAGE_INSTALL_ON_TARGET
+	$(SED) \
+		's/^install: install\.man install\.runhelp$$/install: install.runhelp/; s/^install: install\.bin install\.modules install\.fns install\.man install\.runhelp$$/install: install.bin install.modules install.fns/' \
+		$(@D)/Doc/Makefile.in $(@D)/Makefile.in
+endef
+ZSH_POST_RSYNC_HOOKS += ZSH_SKIP_MANPAGE_INSTALL_ON_TARGET
+
 # zsh uses TRY_RUN to determine these
 ZSH_CONF_OPTS += \
 	zsh_cv_long_is_64_bit=$(if $(BR2_ARCH_IS_64),yes,no) \

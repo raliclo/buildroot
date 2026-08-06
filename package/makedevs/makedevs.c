@@ -257,6 +257,68 @@ char *bb_get_chomped_line_from_file(FILE *file)
 	return private_get_line_from_file(file, 1);
 }
 
+#ifdef __APPLE__
+/* macOS has no fgetpwent/fgetgrent; parse the rootfs files directly. */
+/* macOS 沒有 fgetpwent/fgetgrent；直接解析 rootfs 內的帳號檔案。 */
+static struct passwd sos_mac_passwd;
+static struct group sos_mac_group;
+static char sos_mac_name[256];
+static char sos_mac_password[256];
+
+static struct passwd *sos_fgetpwent(FILE *stream)
+{
+	char *line = bb_get_chomped_line_from_file(stream);
+	char *field;
+	char *save = NULL;
+	if (!line)
+		return NULL;
+	field = strtok_r(line, ":", &save);
+	if (!field)
+		return NULL;
+	strncpy(sos_mac_name, field, sizeof(sos_mac_name) - 1);
+	sos_mac_name[sizeof(sos_mac_name) - 1] = '\0';
+	field = strtok_r(NULL, ":", &save);
+	if (!field)
+		return NULL;
+	strncpy(sos_mac_password, field, sizeof(sos_mac_password) - 1);
+	sos_mac_password[sizeof(sos_mac_password) - 1] = '\0';
+	field = strtok_r(NULL, ":", &save);
+	if (!field)
+		return NULL;
+	sos_mac_passwd.pw_uid = (uid_t)strtoul(field, NULL, 10);
+	field = strtok_r(NULL, ":", &save);
+	if (!field)
+		return NULL;
+	sos_mac_passwd.pw_gid = (gid_t)strtoul(field, NULL, 10);
+	sos_mac_passwd.pw_name = sos_mac_name;
+	sos_mac_passwd.pw_passwd = sos_mac_password;
+	return &sos_mac_passwd;
+}
+
+static struct group *sos_fgetgrent(FILE *stream)
+{
+	char *line = bb_get_chomped_line_from_file(stream);
+	char *field;
+	char *save = NULL;
+	if (!line)
+		return NULL;
+	field = strtok_r(line, ":", &save);
+	if (!field)
+		return NULL;
+	strncpy(sos_mac_name, field, sizeof(sos_mac_name) - 1);
+	sos_mac_name[sizeof(sos_mac_name) - 1] = '\0';
+	strtok_r(NULL, ":", &save);
+	field = strtok_r(NULL, ":", &save);
+	if (!field)
+		return NULL;
+	sos_mac_group.gr_gid = (gid_t)strtoul(field, NULL, 10);
+	sos_mac_group.gr_name = sos_mac_name;
+	sos_mac_group.gr_passwd = sos_mac_password;
+	sos_mac_group.gr_mem = NULL;
+	return &sos_mac_group;
+}
+#endif
+
 long my_getpwnam(const char *name)
 {
 	struct passwd *myuser;
@@ -265,7 +327,11 @@ long my_getpwnam(const char *name)
 	stream = bb_xfopen(PASSWD_PATH, "r");
 	while(1) {
 		errno = 0;
+		#ifdef __APPLE__
+		myuser = sos_fgetpwent(stream);
+		#else
 		myuser = fgetpwent(stream);
+		#endif
 		if (myuser == NULL)
 			bb_error_msg_and_die("unknown user name: %s", name);
 		if (errno)
@@ -286,7 +352,11 @@ long my_getgrnam(const char *name)
 	stream = bb_xfopen(GROUP_PATH, "r");
 	while(1) {
 		errno = 0;
+		#ifdef __APPLE__
+		mygroup = sos_fgetgrent(stream);
+		#else
 		mygroup = fgetgrent(stream);
+		#endif
 		if (mygroup == NULL)
 			bb_error_msg_and_die("unknown group name: %s", name);
 		if (errno)

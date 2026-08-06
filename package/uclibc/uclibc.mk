@@ -439,9 +439,11 @@ endef
 define UCLIBC_BUILD_CMDS
 	$(MAKE) -C $(@D) $(UCLIBC_MAKE_FLAGS) headers
 	$(MAKE) -C $(@D) $(UCLIBC_MAKE_FLAGS)
+	if test "$(shell uname -s)" != "Darwin"; then \
 	$(MAKE) -C $(@D)/utils \
 		PREFIX=$(HOST_DIR) \
-		HOSTCC="$(HOSTCC)" hostutils
+		HOSTCC="$(HOSTCC)" hostutils; \
+	fi
 endef
 
 ifeq ($(BR2_UCLIBC_INSTALL_UTILS),y)
@@ -475,10 +477,12 @@ endef
 # STATIC has no ld* tools, only getconf
 ifeq ($(BR2_STATIC_LIBS),)
 define UCLIBC_INSTALL_HOST_UTILS
-	$(INSTALL) -D -m 0755 $(@D)/utils/ldd.host $(HOST_DIR)/bin/ldd
-	ln -sf ldd $(HOST_DIR)/bin/$(GNU_TARGET_NAME)-ldd
-	$(INSTALL) -D -m 0755 $(@D)/utils/ldconfig.host $(HOST_DIR)/bin/ldconfig
-	ln -sf ldconfig $(HOST_DIR)/bin/$(GNU_TARGET_NAME)-ldconfig
+	if test "$(shell uname -s)" != "Darwin"; then \
+	$(INSTALL) -D -m 0755 $(@D)/utils/ldd.host $(HOST_DIR)/bin/ldd; \
+	ln -sf ldd $(HOST_DIR)/bin/$(GNU_TARGET_NAME)-ldd; \
+	$(INSTALL) -D -m 0755 $(@D)/utils/ldconfig.host $(HOST_DIR)/bin/ldconfig; \
+	ln -sf ldconfig $(HOST_DIR)/bin/$(GNU_TARGET_NAME)-ldconfig; \
+	fi
 endef
 endif
 
