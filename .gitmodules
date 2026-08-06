@@ -1,0 +1,15 @@
+[submodule "dependencies/busybox"]
+	path = dependencies/busybox
+	url = https://git.busybox.net/busybox.git
+[submodule "dependencies/glibc"]
+	path = dependencies/glibc
+	url = https://github.com/bminor/glibc.git
+[submodule "dependencies/zsh"]
+	path = dependencies/zsh
+	url = https://github.com/zsh-users/zsh.git
+[submodule "dependencies/zlib"]
+	path = dependencies/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "dependencies/ncurses"]
+	path = dependencies/ncurses
+	url = https://github.com/ThomasDickey/ncurses-snapshots.git

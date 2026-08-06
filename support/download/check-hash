@@ -30,7 +30,6 @@ shift $((OPTIND-1))
 file="${1}"
 base="${2}"
 shift 2
-declare -a h_files=( "${@}" )
 
 # Check one hash for a file
 # $1: algo hash
@@ -75,12 +74,11 @@ check_one_hash() {
 # Do we know one or more hashes for that file?
 nb_h_files=0
 nb_checks=0
-for h_file in "${h_files[@]}"; do
+for h_file; do
     [ -f "${h_file}" ] || continue
     : $((nb_h_files++))
-    # mapfile reads all lines, even the last one if it is missing a \n
-    mapfile -t hash_lines <"${h_file}"
-    for hash_line in "${hash_lines[@]}"; do
+    # Read one line at a time so the checker also works with macOS Bash 3.
+    while IFS= read -r hash_line || [ -n "${hash_line}" ]; do
         read -r t h f <<<"${hash_line}"
         case "${t}" in
             ''|'#'*)
@@ -94,7 +92,7 @@ for h_file in "${h_files[@]}"; do
                 fi
                 ;;
         esac
-    done
+    done <"${h_file}"
 done
 
 # shellcheck disable=SC2086  # nb_h_files is a non-empty int
