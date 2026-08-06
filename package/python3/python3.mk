@@ -29,7 +29,7 @@ HOST_PYTHON3_CONF_OPTS += \
 # This is needed because libpython may be installed at the same time that
 # python is called.
 HOST_PYTHON3_CONF_ENV += \
-	LDFLAGS="$(HOST_LDFLAGS) -Wl,--enable-new-dtags" \
+	LDFLAGS="$(HOST_LDFLAGS)$(if $(findstring Darwin,$(shell uname -s)),,-Wl,--enable-new-dtags)" \
 	py_cv_module_unicodedata=yes \
 	py_cv_module__codecs_cn=n/a \
 	py_cv_module__codecs_hk=n/a \
@@ -37,7 +37,9 @@ HOST_PYTHON3_CONF_ENV += \
 	py_cv_module__codecs_jp=n/a \
 	py_cv_module__codecs_kr=n/a \
 	py_cv_module__codecs_tw=n/a \
-	py_cv_module__uuid=n/a
+	py_cv_module__uuid=n/a \
+	ac_cv_header_libintl_h=no \
+	ac_cv_lib_intl_textdomain=no
 
 PYTHON3_DEPENDENCIES = host-python3 libffi
 
