@@ -192,7 +192,14 @@ $$(BINARIES_DIR)/$$(ROOTFS_$(2)_FINAL_IMAGE_NAME): $$(ROOTFS_$(2)_DEPENDENCIES)
 	$$(call PRINTF,$$(ROOTFS_SELINUX)) >> $$(FAKEROOT_SCRIPT)
 	$$(call PRINTF,$$(ROOTFS_$(2)_CMD)) >> $$(FAKEROOT_SCRIPT)
 	chmod a+x $$(FAKEROOT_SCRIPT)
-	PATH=$$(BR_PATH) FAKEROOTDONTTRYCHOWN=1 $$(HOST_DIR)/bin/fakeroot -- $$(FAKEROOT_SCRIPT)
+	if test "$$(shell uname -s)" = "Darwin"; then \
+		cp $$(FAKEROOT_SCRIPT) $$(FAKEROOT_SCRIPT).darwin; \
+		$$(SED) '/^chown -h -R/d; /\/makedevs -d/d; /mknod /d' $$(FAKEROOT_SCRIPT).darwin; \
+		chmod a+x $$(FAKEROOT_SCRIPT).darwin; \
+		PATH=$$(BR_PATH) $$(FAKEROOT_SCRIPT).darwin; \
+	else \
+		PATH=$$(BR_PATH) FAKEROOTDONTTRYCHOWN=1 $$(HOST_DIR)/bin/fakeroot -- $$(FAKEROOT_SCRIPT); \
+	fi
 	$(Q)rm -rf $$(TARGET_DIR)
 ifneq ($$(ROOTFS_$(2)_COMPRESS_CMD),)
 	PATH=$$(BR_PATH) $$(ROOTFS_$(2)_COMPRESS_CMD) $$@ > $$@$$(ROOTFS_$(2)_COMPRESS_EXT)
