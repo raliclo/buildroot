@@ -26,10 +26,16 @@ LIBZLIB_PIC = -fPIC
 LIBZLIB_SHARED = --shared
 endif
 
+ifeq ($(shell uname -s),Darwin)
+LIBZLIB_SHARED = --static
+endif
+
 define LIBZLIB_CONFIGURE_CMDS
 	(cd $(@D); rm -rf config.cache; \
 		$(TARGET_CONFIGURE_ARGS) \
 		$(TARGET_CONFIGURE_OPTS) \
+		AR="$(TARGET_AR)" \
+		RANLIB="$(TARGET_RANLIB)" \
 		CFLAGS="$(TARGET_CFLAGS) $(LIBZLIB_PIC)" \
 		./configure \
 		$(LIBZLIB_SHARED) \
@@ -67,10 +73,12 @@ endef
 # time to build other packages, and it is anyway removed later before
 # assembling the filesystem images anyway.
 ifeq ($(BR2_SHARED_LIBS),y)
+ifneq ($(shell uname -s),Darwin)
 define LIBZLIB_RM_STATIC_STAGING
 	rm -f $(STAGING_DIR)/usr/lib/libz.a
 endef
 LIBZLIB_POST_INSTALL_STAGING_HOOKS += LIBZLIB_RM_STATIC_STAGING
+endif
 endif
 
 define HOST_LIBZLIB_INSTALL_CMDS
