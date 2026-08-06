@@ -2,13 +2,25 @@
 
 candidate="$1"
 
-tar=`which $candidate`
+if [ -x "$candidate" ]; then
+	tar="$candidate"
+else
+	tar=`which "$candidate"`
+fi
 if [ ! -x "$tar" ]; then
 	tar=`which tar`
 	if [ ! -x "$tar" ]; then
 		# echo nothing: no suitable tar found
 		exit 1
 	fi
+fi
+
+# swift_tar provides the tar operations Buildroot needs without GNU tar.
+# Its build product is installed under the conventional name "tar" by the
+# caller, so accept it before applying GNU tar version parsing.
+if "$tar" -h 2>&1 | grep -q 'Usage: swift_tar'; then
+	echo "$tar"
+	exit 0
 fi
 
 # Output of 'tar --version' examples:
@@ -23,8 +35,8 @@ version_bsd=`$tar --version | grep 'bsdtar'`
 
 # BSD tar does not have all the command-line options
 if [ -n "${version_bsd}" ] ; then
-    # echo nothing: no suitable tar found
-    exit 1
+	# echo nothing: no suitable tar found
+	exit 1
 fi
 
 # Minimal version = 1.35 (1.35 changed devmajor/devminor for files)

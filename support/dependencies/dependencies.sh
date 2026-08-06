@@ -86,27 +86,32 @@ if [ $MAKE_MAJOR -lt 3 ] || [ $MAKE_MAJOR -eq 3 -a $MAKE_MINOR -lt 81 ] ; then
 	exit 1;
 fi;
 
-# Check host gcc
+# 檢查 host C 編譯器；HOSTCC 可使用 GCC 或 Clang。
 COMPILER=$(which $HOSTCC_NOCCACHE 2> /dev/null)
 if [ -z "$COMPILER" ] ; then
 	COMPILER=$(which cc 2> /dev/null)
 fi;
 if [ -z "$COMPILER" ] ; then
 	echo
-	echo "You must install 'gcc' on your build machine";
+	echo "You must install GCC or Clang on your build machine";
 	exit 1;
 fi;
 
 COMPILER_VERSION=$($COMPILER -v 2>&1 | sed -n '/^gcc version/p' |
 	sed -e 's/^gcc version \([0-9\.]\)/\1/g' -e 's/[-\ ].*//g' -e '1q')
 if [ -z "$COMPILER_VERSION" ] ; then
+	COMPILER_VERSION=$($COMPILER --version 2>&1 |
+		sed -n 's/.*clang version \([0-9][0-9.]*\).*/\1/p' | head -n 1)
+fi
+if [ -z "$COMPILER_VERSION" ] ; then
 	echo
-	echo "You must install 'gcc' on your build machine";
+	echo "You must install GCC or Clang on your build machine";
 	exit 1;
 fi;
 COMPILER_MAJOR=$(echo $COMPILER_VERSION | sed -e "s/\..*//g")
 COMPILER_MINOR=$(echo $COMPILER_VERSION | sed -e "s/^$COMPILER_MAJOR\.//g" -e "s/\..*//g")
-if [ $COMPILER_MAJOR -lt 4 -o $COMPILER_MAJOR -eq 4 -a $COMPILER_MINOR -lt 8 ] ; then
+if ! $COMPILER --version 2>&1 | grep -q 'clang version' &&
+	[ $COMPILER_MAJOR -lt 4 -o $COMPILER_MAJOR -eq 4 -a $COMPILER_MINOR -lt 8 ] ; then
 	echo
 	echo "You have gcc '$COMPILER_VERSION' installed.  gcc >= 4.8 is required"
 	exit 1;
@@ -126,15 +131,20 @@ if [ ! -z "$CXXCOMPILER" ] ; then
 	CXXCOMPILER_VERSION=$($CXXCOMPILER -v 2>&1 | sed -n '/^gcc version/p' |
 		sed -e 's/^gcc version \([0-9\.]\)/\1/g' -e 's/[-\ ].*//g' -e '1q')
 	if [ -z "$CXXCOMPILER_VERSION" ] ; then
+		CXXCOMPILER_VERSION=$($CXXCOMPILER --version 2>&1 |
+			sed -n 's/.*clang version \([0-9][0-9.]*\).*/\1/p' | head -n 1)
+	fi
+	if [ -z "$CXXCOMPILER_VERSION" ] ; then
 		echo
-		echo "You may have to install 'g++' on your build machine"
+		echo "You may have to install 'g++' or 'clang++' on your build machine"
 	fi
 fi
 
 if [ -n "$CXXCOMPILER_VERSION" ] ; then
 	CXXCOMPILER_MAJOR=$(echo $CXXCOMPILER_VERSION | sed -e "s/\..*//g")
 	CXXCOMPILER_MINOR=$(echo $CXXCOMPILER_VERSION | sed -e "s/^$CXXCOMPILER_MAJOR\.//g" -e "s/\..*//g")
-	if [ $CXXCOMPILER_MAJOR -lt 4 -o $CXXCOMPILER_MAJOR -eq 4 -a $CXXCOMPILER_MINOR -lt 8 ] ; then
+	if ! $CXXCOMPILER --version 2>&1 | grep -q 'clang version' &&
+		[ $CXXCOMPILER_MAJOR -lt 4 -o $CXXCOMPILER_MAJOR -eq 4 -a $CXXCOMPILER_MINOR -lt 8 ] ; then
 		echo
 		echo "You have g++ '$CXXCOMPILER_VERSION' installed.  g++ >= 4.8 is required"
 		exit 1
