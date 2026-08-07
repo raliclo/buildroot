@@ -34,8 +34,8 @@ HOST_E2FSPROGS_CONF_OPTS = \
 	--disable-e2initrd-helper \
 	--disable-fuse2fs \
 	--disable-fsck \
-	--disable-libblkid \
-	--disable-libuuid \
+	--enable-libblkid \
+	--enable-libuuid \
 	--disable-testio-debug \
 	--enable-symlink-install \
 	--enable-elf-shlibs \
