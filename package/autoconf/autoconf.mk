@@ -23,7 +23,9 @@ $(eval $(host-autotools-package))
 # variables used by other packages
 AUTOCONF = $(HOST_DIR)/bin/autoconf -I "$(ACLOCAL_DIR)" -I "$(ACLOCAL_HOST_DIR)"
 AUTOHEADER = $(HOST_DIR)/bin/autoheader -I "$(ACLOCAL_DIR)" -I "$(ACLOCAL_HOST_DIR)"
+# Resolve true through PATH so this also works on macOS, where /bin/true is absent.
+# 透過 PATH 尋找 true，兼容沒有 /bin/true 的 macOS。
 AUTORECONF = $(HOST_CONFIGURE_OPTS) ACLOCAL="$(ACLOCAL)" \
 	AUTOCONF="$(AUTOCONF)" AUTOHEADER="$(AUTOHEADER)" \
-	AUTOMAKE="$(AUTOMAKE)" GTKDOCIZE=/bin/true \
+	AUTOMAKE="$(AUTOMAKE)" GTKDOCIZE=true \
 	$(HOST_DIR)/bin/autoreconf -f -i
