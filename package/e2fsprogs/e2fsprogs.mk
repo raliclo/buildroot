@@ -16,7 +16,13 @@ E2FSPROGS_INSTALL_STAGING = YES
 # This prevents overriding them with e2fsprogs' ones, which may cause
 # problems for other packages.
 E2FSPROGS_DEPENDENCIES = host-pkgconf util-linux
-HOST_E2FSPROGS_DEPENDENCIES = host-pkgconf host-util-linux
+# HOST_E2FSPROGS_CONF_OPTS unconditionally passes --disable-libblkid and
+# --disable-libuuid below, so the host variant never actually consumes
+# anything from host-util-linux. On macOS, host-util-linux's libmount
+# fails to configure at all (requires mntent.h, a Linux-only header with
+# no macOS equivalent), so drop this otherwise-vestigial dependency
+# rather than making libmount buildable for a build that never uses it.
+HOST_E2FSPROGS_DEPENDENCIES = host-pkgconf
 
 E2FSPROGS_SELINUX_MODULES = fstools
 
