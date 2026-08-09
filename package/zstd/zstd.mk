@@ -73,6 +73,27 @@ ZSTD_OPTS += HAVE_THREAD=0
 ZSTD_BUILD_LIBS_THREAD_SUFFIX = -nomt
 endif
 
+# zstd's lib/Makefile picks the shared-library flavour from
+# UNAME_TARGET_SYSTEM, which defaults to $(UNAME) -- the BUILD machine. Cross
+# compiling from macOS it therefore decides the target is Darwin, builds
+# libzstd.1.5.7.dylib, and passes macOS linker flags to the Linux cross gcc:
+#
+#   aarch64-buildroot-linux-gnu-gcc: error: unrecognized command-line option
+#   '-install_name'
+#
+# Upstream declares UNAME_TARGET_SYSTEM with ?= specifically as the
+# cross-compilation override hook, so setting it is the intended fix rather
+# than a workaround. Target-side only: HOST_ZSTD_OPTS is separate and the host
+# build genuinely does target the host OS.
+#
+# zstd 的 lib/Makefile 依 UNAME_TARGET_SYSTEM 決定共享庫形式，其預設值是
+# $(UNAME)，也就是「建置主機」。在 macOS 上交叉編譯到 Linux 時會誤判目標為
+# Darwin，產生 libzstd.1.5.7.dylib 並把 macOS 連結旗標傳給 Linux 交叉 gcc。
+# 上游以 ?= 宣告 UNAME_TARGET_SYSTEM，本就是預留給交叉編譯的覆寫掛鉤，
+# 因此設定它是上游預期的正解而非權宜之計。僅影響 target 端：HOST_ZSTD_OPTS
+# 是獨立的，host 版本來就該以 host OS 為目標。
+ZSTD_OPTS += UNAME_TARGET_SYSTEM=Linux
+
 ZSTD_BUILD_LIBS = \
 	$(addsuffix -release, \
 		$(addsuffix $(ZSTD_BUILD_LIBS_THREAD_SUFFIX), \
