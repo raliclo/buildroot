@@ -120,6 +120,26 @@ define ZSTD_INSTALL_TARGET_CMDS
 endef
 
 HOST_ZSTD_OPTS += PREFIX=$(HOST_DIR)
+
+# Disable the optional pass-through codecs in the host zstd CLI.
+#
+# ZSTD_OPTS above pins HAVE_ZLIB/HAVE_LZMA/HAVE_LZ4 for the target, but
+# HOST_ZSTD_OPTS set only PREFIX, so the host build fell through to zstd's own
+# autodetection. On macOS that finds <lzma.h> from the SDK, defines HAVE_LZMA,
+# and then links without -llzma, so the CLI fails at CCLD with undefined
+# _lzma_easy_buffer_encode, _lzma_stream_decoder and friends.
+#
+# Turning them off rather than adding link flags is the right call: buildroot
+# uses the host zstd purely to compress its own artifacts, and the gzip/xz/lz4
+# pass-through modes of the zstd CLI are never exercised.
+#
+# 關閉 host 版 zstd CLI 的選用轉接 codec。上方的 ZSTD_OPTS 已為 target 固定
+# HAVE_ZLIB/HAVE_LZMA/HAVE_LZ4，但 HOST_ZSTD_OPTS 僅設了 PREFIX，host 端因而
+# 落回 zstd 自身的偵測：在 macOS 上會找到 SDK 的 <lzma.h> 而定義 HAVE_LZMA，
+# 卻未帶 -llzma，於是 CLI 在 CCLD 階段因 _lzma_* 未定義而失敗。
+# 選擇關閉而非補上連結旗標才正確：buildroot 使用 host zstd 只為壓縮自身產物，
+# 從未用到 zstd CLI 的 gzip/xz/lz4 轉接模式。
+HOST_ZSTD_OPTS += HAVE_ZLIB=0 HAVE_LZMA=0 HAVE_LZ4=0
 HOST_ZSTD_ENV = $(HOST_MAKE_ENV) $(HOST_CONFIGURE_OPTS)
 
 # We are a ccache dependency, so we can't use ccache
