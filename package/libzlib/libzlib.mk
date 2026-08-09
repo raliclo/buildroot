@@ -26,9 +26,24 @@ LIBZLIB_PIC = -fPIC
 LIBZLIB_SHARED = --shared
 endif
 
-ifeq ($(shell uname -s),Darwin)
-LIBZLIB_SHARED = --static
-endif
+# NOTE: a "$(shell uname -s) = Darwin -> --static" override used to live here.
+# It was a workaround for zlib's configure hardcoding Apple libtool as AR on a
+# Darwin host, which produced a broken 8-byte libz.a and could not link a shared
+# library at all. That root cause is now fixed in the zlib submodule itself
+# (dependencies/zlib commit 99381d6: only use the Darwin libtool default when
+# the caller has not already set AR), so forcing --static is no longer needed.
+#
+# It is also actively harmful: it keys off the BUILD host, so cross-compiling
+# from macOS produced no libz.so.1 at all, and the Swift toolchain's clang fails
+# to start in the guest with
+#   "libz.so.1: cannot open shared object file: No such file or directory".
+#
+# 此處原本有一段「build host 是 Darwin 就強制 --static」的覆寫，用來繞開 zlib
+# configure 在 Darwin 上硬指定 Apple libtool 為 AR、產生 8 bytes 壞掉的 libz.a
+# 的問題。該根因已在 zlib submodule 內修正（commit 99381d6：僅在呼叫端未設定
+# AR 時才採用 Darwin 的 libtool 預設），因此不再需要強制靜態。
+# 且此覆寫依「建置主機」判斷，從 macOS 交叉編譯時會完全不產生 libz.so.1，
+# 導致 guest 內 Swift toolchain 的 clang 無法啟動。
 
 define LIBZLIB_CONFIGURE_CMDS
 	(cd $(@D); rm -rf config.cache; \
