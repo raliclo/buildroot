@@ -44,6 +44,19 @@ endif
 # AR 時才採用 Darwin 的 libtool 預設），因此不再需要強制靜態。
 # 且此覆寫依「建置主機」判斷，從 macOS 交叉編譯時會完全不產生 libz.so.1，
 # 導致 guest 內 Swift toolchain 的 clang 無法啟動。
+#
+# 移除該覆寫後 --shared 雖然有傳入，但仍只產出 libz.a：zlib configure 的
+# Darwin 分支除了 AR 之外，還會設定 shared_ext=.dylib 與
+# LDSHARED="$cc -dynamiclib -install_name ..."，而分支判斷同樣是依建置主機的
+# uname。configure 支援 --uname= 作為覆寫掛鉤（見其第 134 行），因此在下方
+# 明確傳入 --uname=Linux，與 lz4 的 TARGET_OS、zstd 的 UNAME_TARGET_SYSTEM 同型。
+#
+# After dropping that override, --shared was passed but the build still only
+# produced libz.a: zlib's configure Darwin branch also sets shared_ext=.dylib
+# and LDSHARED="$cc -dynamiclib -install_name ...", and it picks that branch
+# from the BUILD host's uname. configure exposes --uname= as the override hook,
+# so pass --uname=Linux below -- same shape as the lz4 TARGET_OS and zstd
+# UNAME_TARGET_SYSTEM fixes.
 
 define LIBZLIB_CONFIGURE_CMDS
 	(cd $(@D); rm -rf config.cache; \
@@ -53,6 +66,7 @@ define LIBZLIB_CONFIGURE_CMDS
 		RANLIB="$(TARGET_RANLIB)" \
 		CFLAGS="$(TARGET_CFLAGS) $(LIBZLIB_PIC)" \
 		./configure \
+		--uname=Linux \
 		$(LIBZLIB_SHARED) \
 		--prefix=/usr \
 	)
