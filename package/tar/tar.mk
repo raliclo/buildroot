@@ -64,6 +64,17 @@ HOST_TAR_CONF_ENV = \
 	CC="$(HOSTCC_NOCCACHE)" \
 	CXX="$(HOSTCXX_NOCCACHE)"
 
+# macOS keeps iconv in a separate library. tar's configure finds <iconv.h>,
+# concludes iconv is available, and links without -liconv, so the build dies
+# at CCLD with undefined _iconv and _iconv_open. glibc hosts have iconv inside
+# libc and have no -liconv to link, hence the guard.
+# macOS 的 iconv 位於獨立函式庫。tar 的 configure 找到 <iconv.h> 便認定 iconv
+# 可用，卻未帶 -liconv，於是在 CCLD 階段因 _iconv / _iconv_open 未定義而失敗。
+# glibc 主機的 iconv 內含於 libc 且沒有可連結的 -liconv，故加上條件判斷。
+ifeq ($(shell uname -s),Darwin)
+HOST_TAR_CONF_ENV += LIBS=-liconv
+endif
+
 # Patches 0002-Fix-savannah-bug-#64441.patch and
 # 0003-tests-fix-LDADD.patch are patching Makefile.am, so they do
 # require TAR_AUTORECONF = YES above. However, for the host-tar
