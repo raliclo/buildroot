@@ -21,7 +21,18 @@
  */
 
 /* for strdup */
-#define _XOPEN_SOURCE 500
+/*
+ * 700 (POSIX.1-2008), not 500. strdup entered the standard in SUSv3, so a
+ * strict implementation is right to hide it at 500 -- and macOS is strict:
+ * _XOPEN_SOURCE 500 sets __DARWIN_C_LEVEL to 500 and string.h then omits the
+ * declaration entirely. glibc is lenient and declares it anyway, which is why
+ * this went unnoticed. clang 17 turned the resulting implicit declaration
+ * from a warning into an error, so the build now fails outright with
+ *   error: call to undeclared library function 'strdup'
+ * 700 asks for a standard that actually contains strdup and is correct on
+ * both.
+ */
+#define _XOPEN_SOURCE 700
 
 /* System library */
 #include <stdio.h>
