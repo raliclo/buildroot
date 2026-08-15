@@ -13,3 +13,6 @@
 [submodule "dependencies/ncurses"]
 	path = dependencies/ncurses
 	url = https://github.com/ThomasDickey/ncurses-snapshots.git
+[submodule "dependencies/git"]
+	path = dependencies/git
+	url = https://github.com/git/git.git
