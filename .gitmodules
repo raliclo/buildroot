@@ -1,6 +1,6 @@
 [submodule "dependencies/busybox"]
 	path = dependencies/busybox
-	url = https://git.busybox.net/busybox.git
+	url = https://github.com/raliclo/busybox.git
 [submodule "dependencies/glibc"]
 	path = dependencies/glibc
 	url = https://github.com/bminor/glibc.git
