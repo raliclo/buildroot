@@ -28,8 +28,17 @@ HOST_PYTHON3_CONF_OPTS += \
 # Make sure that LD_LIBRARY_PATH overrides -rpath.
 # This is needed because libpython may be installed at the same time that
 # python is called.
+# Apple 的 ld 不支援 --enable-new-dtags，因此只在非 Darwin 的 host 上加它。
+# 空格必須放在 $(if) 外面：黏上去會讓 rpath 變成不存在的 "<host>/lib-Wl"，
+# 而 else 分支在 macOS 上永遠不會展開，所以那個錯誤在寫它的平台上看不見。
+# The space must sit outside the $(if): leading whitespace in the else-part is not
+# guaranteed to survive, and gluing it on produced an rpath of "<host>/lib-Wl" --
+# a directory that does not exist -- so pyexpat resolved against the system libexpat
+# and failed to import on undefined symbol XML_SetHashSalt16Bytes. Invisible on macOS,
+# where this else-part never expands.
+HOST_PYTHON3_NEW_DTAGS = $(if $(findstring Darwin,$(shell uname -s)),,-Wl,--enable-new-dtags)
 HOST_PYTHON3_CONF_ENV += \
-	LDFLAGS="$(HOST_LDFLAGS)$(if $(findstring Darwin,$(shell uname -s)),,-Wl,--enable-new-dtags)" \
+	LDFLAGS="$(HOST_LDFLAGS) $(HOST_PYTHON3_NEW_DTAGS)" \
 	py_cv_module_unicodedata=yes \
 	py_cv_module__codecs_cn=n/a \
 	py_cv_module__codecs_hk=n/a \
