@@ -1,5 +1,0 @@
---- a/zlib/zutil.h
-+++ b/zlib/zutil.h
-@@ -140 +140 @@
--#if defined(MACOS) || defined(TARGET_OS_MAC)
-+#if (defined(MACOS) || defined(TARGET_OS_MAC)) && !defined(__APPLE__)
