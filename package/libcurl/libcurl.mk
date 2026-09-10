@@ -72,7 +72,21 @@ LIBCURL_CONF_OPTS += --without-gnutls
 endif
 
 ifeq ($(BR2_PACKAGE_LIBCURL_MBEDTLS),y)
-LIBCURL_CONF_OPTS += --with-mbedtls=$(STAGING_DIR)/usr
+# The CA locations are passed for OpenSSL and WolfSSL but not here, and without
+# them curl built against mbedTLS has NO default trust store: every https URL
+# fails with "The certificate is not correctly signed by the trusted CA" even
+# though ca-certificates is installed and the chain is perfectly verifiable.
+# Setting GIT_SSL_CAINFO by hand makes the same fetch succeed, which is how the
+# omission was found -- the failure names the certificate, never the missing
+# default.
+# 這兩個 CA 位置在 OpenSSL 與 WolfSSL 分支都會傳，唯獨此處沒有；缺少它們時，以
+# mbedTLS 建置的 curl 沒有任何預設信任庫，即使 ca-certificates 已安裝、憑證鏈完全
+# 可驗證，每一個 https 網址仍會以「The certificate is not correctly signed by the
+# trusted CA」失敗。手動指定 GIT_SSL_CAINFO 後同一次取用即成功，這正是發現此疏漏的
+# 方式——錯誤訊息指著憑證，從不提及缺席的預設值。
+LIBCURL_CONF_OPTS += --with-mbedtls=$(STAGING_DIR)/usr \
+	--with-ca-path=/etc/ssl/certs \
+	--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
 LIBCURL_DEPENDENCIES += mbedtls
 else
 LIBCURL_CONF_OPTS += --without-mbedtls
