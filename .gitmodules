@@ -3,7 +3,7 @@
 	url = https://github.com/raliclo/busybox.git
 [submodule "dependencies/glibc"]
 	path = dependencies/glibc
-	url = https://github.com/bminor/glibc.git
+	url = https://sourceware.org/git/glibc.git
 [submodule "dependencies/zsh"]
 	path = dependencies/zsh
 	url = https://github.com/zsh-users/zsh.git
